@@ -3,6 +3,9 @@ type Orientation = "N" | "E" | "S" | "W";
 type Rover = {
   orientation: Orientation;
   position: Coordinates;
+  origOrientation: Orientation;
+  origPosition: Coordinates;
+  lost: boolean;
 };
 type RoverResult = (Rover & { _: "Success" }) | (Rover & { _: "Failure" });
 const Compass: Orientation[] = ["N", "E", "S", "W"];
@@ -40,13 +43,30 @@ const outOfBounds = (nextPos: Coordinates, maxPos: Coordinates) =>
   nextPos[0] > maxPos[0] ||
   nextPos[1] > maxPos[1];
 
-const forward = (state: RoverResult, maxPos: Coordinates): RoverResult => {
+const forward = (
+  state: RoverResult,
+  maxPos: Coordinates,
+  scents: string[]
+): RoverResult => {
   const nextPos = getNextPosition(state.position, state.orientation);
 
-  if (outOfBounds(nextPos, maxPos)) {
-    console.log("MEK");
+  if (scents.indexOf(JSON.stringify(state.position)) >= 0) {
+    return {
+      ...state,
+      orientation: state.origOrientation,
+      position: state.origPosition,
+      _: "Failure",
+      lost: false,
+    };
+  }
 
-    return { ...state, _: "Failure" };
+  if (
+    outOfBounds(nextPos, maxPos) &&
+    scents.indexOf(JSON.stringify(state.position)) >= -1
+  ) {
+    scents.push(JSON.stringify(state.position));
+
+    return { ...state, _: "Failure", lost: true };
   }
 
   return { ...state, position: nextPos };
@@ -55,22 +75,24 @@ const forward = (state: RoverResult, maxPos: Coordinates): RoverResult => {
 const apply = (
   instruction: string,
   state: RoverResult,
-  maxPos: Coordinates
+  maxPos: Coordinates,
+  scents: string[]
 ): RoverResult => {
   if (instruction === "R") return turnRight(state);
   if (instruction === "L") return turnLeft(state);
-  if (instruction === "F") return forward(state, maxPos);
+  if (instruction === "F") return forward(state, maxPos, scents);
 };
 
 export const execute = (
   instructions: string,
   state: RoverResult,
-  maxPos: Coordinates
+  maxPos: Coordinates,
+  scents: string[]
 ) => {
   let result = state;
 
   for (const instruction of instructions) {
-    result = apply(instruction, result, maxPos);
+    result = apply(instruction, result, maxPos, scents);
     if (result._ === "Failure") break;
   }
   return result;
@@ -78,7 +100,7 @@ export const execute = (
 
 const print = (state: RoverResult) => {
   const location = `${state.position[0]} ${state.position[1]} ${state.orientation}`;
-  return state._ === "Failure" ? `${location} LOST` : `${location}`;
+  return state.lost ? `${location} LOST` : `${location}`;
 };
 
 const initialState = (location): RoverResult => {
@@ -86,21 +108,29 @@ const initialState = (location): RoverResult => {
 
   return {
     orientation,
+    origOrientation: orientation,
+    origPosition: [parseInt(x), parseInt(y)],
     position: [parseInt(x), parseInt(y)],
     _: "Success",
+    lost: false,
   };
 };
 
 export const run = (program: string[]) => {
   const result = [];
-
+  const scents: string[] = [];
   const [x, y] = program.shift().split(" ");
   const maxPos: Coordinates = [parseInt(x), parseInt(y)];
 
   while (program.length > 0) {
     const location = program.shift();
     const instrucctions = program.shift();
-    const state = execute(instrucctions, initialState(location), maxPos);
+    const state = execute(
+      instrucctions,
+      initialState(location),
+      maxPos,
+      scents
+    );
 
     result.push(print(state));
   }

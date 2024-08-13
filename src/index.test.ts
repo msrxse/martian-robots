@@ -51,7 +51,32 @@ test("When executing a program", () => {
   expect(run(program)).toEqual(["1 1 E"]);
 });
 
-test.only("When moving Program off the edge of the grid ", () => {
+test("When moving Program off the edge of the grid ", () => {
   const program = ["5 3", "1 1 E", "RFRFRFRF", "0 3 W", "LLFFFLFLFL"];
   expect(run(program)).toEqual(["1 1 E", "3 3 N LOST"]);
+});
+
+test("When moving a second program off the grid - it ignores it if another robot already exited from same point", () => {
+  const program = ["5 3", "0 3 W", "LLFFFLFLFL", "0 3 W", "LLFFFLFLFL"];
+  expect(run(program)).toEqual(["3 3 N LOST", "0 3 W"]);
+});
+
+test("When moving off the grid - when initial position is same as exit", () => {
+  const program = ["1 1", "0 1 N", "F", "0 1 N", "F"];
+  expect(run(program)).toEqual(["0 1 N LOST", "0 1 N"]);
+});
+
+// Note that 3rd output must be wrong in instructions - Since the second instructions leaves a
+// scent in [3, 3] 3rd instruction attempts to leave again at same point - therefor actual correct output is '0 3 W' (is ignored)
+test("When running full Program", () => {
+  const program = [
+    "5 3",
+    "1 1 E",
+    "RFRFRFRF",
+    "3 2 N",
+    "FRRFLLFFRRFLL",
+    "0 3 W",
+    "LLFFFLFLFL",
+  ];
+  expect(run(program)).toEqual(["1 1 E", "3 3 N LOST", "0 3 W"]);
 });
