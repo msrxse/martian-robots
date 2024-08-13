@@ -16,6 +16,20 @@ Developer programming problem submission for **Red Badger**
 [pnpm, npm or yarn] run test
 ```
 
+## Approach
+
+- I am using a bottom-up functional approach. In typescript I prefer to write functional code rather than procedural or object-oriented code and one of the techniques I find very useful when I'm writing functional code is bottom-up design. I start off by writing the simplest units of software and then slowly compose those to build a more complex system.
+
+1.  The smallest pieces of software are the behaviors of the rovers. A rover can turn left, turn right or it can move forward. I usually start off with the tests for each rover action, and as I move on I ensure these don't break.
+2.  I then usually enter into refactoring mode where I want to turn my attention to the design of the code, combining tests into 1 with test.each templates, or merging similar functions into one, and ensuring functions follow the single responsibility principle, and imnmutability.
+3.  Next I change the way tests work so that instead of working against those low level functions I take one step up the abstraction. So in this bottom-up approach the challenge is that the tests now are written against these small functions and that can make it harder to refactor in the future. In the process is OK to discard old tests as the new tests will still have 100% coverage.
+4.  Moving on the code will move from, executing a full single instruction, then to execute a list of instructions (different rovers). Next, I introduce a Success/Failure result - that allows us to slow the instructions if the rover leaves the grid. And finally, another flag to only mark the first rover as LOST, while successive rovers exiting through same cell will be ignored.
+
+- The approach I have taken is that I have tested very small pieces that are very safe and easy to work with and slowly refactored those out so that I don't have any coupling to any of the implementation detail, if I decide to refactor code, the tests will not fail at this point.
+
+- I use TDD and here I do this red green refactor cycle where the red phase is when I want to write a test and I want to see that test fail for some kind of semantically valid reason, a test that would work if our behavior existed.
+- Then I write tests I want to keep them clean I want to keep them easy to read i think that introducing helper functions can really help to keep our code close and easy to understand.
+
 ## The Problem
 
 The surface of Mars can be modelled by a rectangular grid around which robots are able to move according to instructions provided from Earth. You are to write a program that determines each sequence of robot positions and reports the final position of the robot.
