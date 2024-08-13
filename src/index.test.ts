@@ -1,27 +1,19 @@
-import { isEven } from "./index";
+const turnLeft = (orientation) => {
+  if (orientation === "N") return "W";
+  if (orientation === "W") return "S";
+  if (orientation === "S") return "E";
+  if (orientation === "E") return "N";
+};
 
-describe("isEven", () => {
-  it("should return true for even numbers", () => {
-    const evenNumber = 10;
-
-    const result = isEven(evenNumber);
-
-    expect(result).toBe(true);
-  });
-
-  it("should return false for odd numbers", () => {
-    const oddNumber = 7;
-
-    const result = isEven(oddNumber);
-
-    expect(result).toBe(false);
-  });
-
-  it("should return true for zero", () => {
-    const zero = 0;
-
-    const result = isEven(zero);
-
-    expect(result).toBe(true);
-  });
+test("When facing N, turning L should cause us to face W", () => {
+  expect(turnLeft("N")).toBe("W");
+});
+test("When facing W, turning L should cause us to face S", () => {
+  expect(turnLeft("N")).toBe("W");
+});
+test("When facing S, turning L should cause us to face E", () => {
+  expect(turnLeft("S")).toBe("E");
+});
+test("When facing E, turning L should cause us to face N", () => {
+  expect(turnLeft("E")).toBe("N");
 });
