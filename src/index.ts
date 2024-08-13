@@ -5,10 +5,6 @@ export type Rover = {
   position: Coordinates;
 };
 const Compass: Orientation[] = ["N", "E", "S", "W"];
-export const rover = (orientation: Orientation, position?: Coordinates) => ({
-  orientation,
-  position: position || [0, 0],
-});
 
 const turnRight = (rover: Rover): Rover => {
   const newOrientation = Compass[(Compass.indexOf(rover.orientation) + 1) % 4];
@@ -27,16 +23,30 @@ const turnLeft = (rover: Rover): Rover => {
     orientation: newOrientation,
   };
 };
-const forward = (state: Rover) => {
-  const [x, y] = state.position;
-  if (state.orientation === "N") return rover("N", [x, y + 1]);
-  if (state.orientation === "E") return rover("E", [x + 1, y]);
-  if (state.orientation === "S") return rover("S", [x, y - 1]);
-  if (state.orientation === "W") return rover("W", [x - 1, y]);
+const getNextPosition = (position, orientation): Coordinates => {
+  const [x, y] = position;
+  if (orientation === "N") return [x, y + 1];
+  if (orientation === "E") return [x + 1, y];
+  if (orientation === "S") return [x, y - 1];
+  if (orientation === "W") return [x - 1, y];
 };
 
-export const execute = (instruction: string, rover: Rover): Rover => {
-  if (instruction === "R") return turnRight(rover);
-  if (instruction === "L") return turnLeft(rover);
-  if (instruction === "F") return forward(rover);
+const forward = (state: Rover) => {
+  const nextPos = getNextPosition(state.position, state.orientation);
+  return { ...state, position: nextPos };
+};
+
+const apply = (instruction: string, state: Rover): Rover => {
+  if (instruction === "R") return turnRight(state);
+  if (instruction === "L") return turnLeft(state);
+  if (instruction === "F") return forward(state);
+};
+
+export const execute = (instructions: string, state: Rover) => {
+  let result = state;
+
+  for (const instruction of instructions) {
+    result = apply(instruction, result);
+  }
+  return result;
 };
