@@ -1,5 +1,4 @@
-import { execute } from ".";
-import type { Rover } from ".";
+import { run } from ".";
 // export const rover = (orientation: Orientation, position?: Coordinates) => ({
 //   orientation,
 //   position: position || [0, 0],
@@ -47,33 +46,12 @@ import type { Rover } from ".";
 //   expect(run("LLFFFLFLFL", rover("W", [0, 3]))).toEqual(rover("S", [2, 4]));
 // });
 
-const print = (state: Rover) => {
-  return `${state.position[0]} ${state.position[1]} ${state.orientation}`;
-};
-
-const initialState = (location): Rover => {
-  const [x, y, orientation] = location.split(" ");
-
-  return {
-    orientation,
-    position: [parseInt(x), parseInt(y)],
-  };
-};
-
-export const run = (program: string[]) => {
-  const result = [];
-
-  while (program.length > 0) {
-    const location = program.shift();
-    const instrucctions = program.shift();
-    const state = execute(instrucctions, initialState(location));
-
-    result.push(print(state));
-  }
-  return result;
-};
-
 test("When executing a program", () => {
-  const program = ["1 1 E", "RFRFRFRF"];
+  const program = ["5 3", "1 1 E", "RFRFRFRF"];
   expect(run(program)).toEqual(["1 1 E"]);
+});
+
+test.only("When moving Program off the edge of the grid ", () => {
+  const program = ["5 3", "1 1 E", "RFRFRFRF", "0 3 W", "LLFFFLFLFL"];
+  expect(run(program)).toEqual(["1 1 E", "3 3 N LOST"]);
 });

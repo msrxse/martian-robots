@@ -1,26 +1,29 @@
 type Coordinates = [x: number, y: number];
 type Orientation = "N" | "E" | "S" | "W";
-export type Rover = {
+type Rover = {
   orientation: Orientation;
   position: Coordinates;
 };
+type RoverResult = (Rover & { _: "Success" }) | (Rover & { _: "Failure" });
 const Compass: Orientation[] = ["N", "E", "S", "W"];
 
-const turnRight = (rover: Rover): Rover => {
+const turnRight = (rover: Rover): RoverResult => {
   const newOrientation = Compass[(Compass.indexOf(rover.orientation) + 1) % 4];
 
   return {
     ...rover,
     orientation: newOrientation,
+    _: "Success",
   };
 };
 
-const turnLeft = (rover: Rover): Rover => {
+const turnLeft = (rover: Rover): RoverResult => {
   const newOrientation = Compass[(Compass.indexOf(rover.orientation) + 3) % 4];
 
   return {
     ...rover,
     orientation: newOrientation,
+    _: "Success",
   };
 };
 const getNextPosition = (position, orientation): Coordinates => {
@@ -31,22 +34,75 @@ const getNextPosition = (position, orientation): Coordinates => {
   if (orientation === "W") return [x - 1, y];
 };
 
-const forward = (state: Rover) => {
+const outOfBounds = (nextPos: Coordinates, maxPos: Coordinates) =>
+  nextPos[0] < 0 ||
+  nextPos[1] < 0 ||
+  nextPos[0] > maxPos[0] ||
+  nextPos[1] > maxPos[1];
+
+const forward = (state: RoverResult, maxPos: Coordinates): RoverResult => {
   const nextPos = getNextPosition(state.position, state.orientation);
+
+  if (outOfBounds(nextPos, maxPos)) {
+    console.log("MEK");
+
+    return { ...state, _: "Failure" };
+  }
+
   return { ...state, position: nextPos };
 };
 
-const apply = (instruction: string, state: Rover): Rover => {
+const apply = (
+  instruction: string,
+  state: RoverResult,
+  maxPos: Coordinates
+): RoverResult => {
   if (instruction === "R") return turnRight(state);
   if (instruction === "L") return turnLeft(state);
-  if (instruction === "F") return forward(state);
+  if (instruction === "F") return forward(state, maxPos);
 };
 
-export const execute = (instructions: string, state: Rover) => {
+export const execute = (
+  instructions: string,
+  state: RoverResult,
+  maxPos: Coordinates
+) => {
   let result = state;
 
   for (const instruction of instructions) {
-    result = apply(instruction, result);
+    result = apply(instruction, result, maxPos);
+    if (result._ === "Failure") break;
+  }
+  return result;
+};
+
+const print = (state: RoverResult) => {
+  const location = `${state.position[0]} ${state.position[1]} ${state.orientation}`;
+  return state._ === "Failure" ? `${location} LOST` : `${location}`;
+};
+
+const initialState = (location): RoverResult => {
+  const [x, y, orientation] = location.split(" ");
+
+  return {
+    orientation,
+    position: [parseInt(x), parseInt(y)],
+    _: "Success",
+  };
+};
+
+export const run = (program: string[]) => {
+  const result = [];
+
+  const [x, y] = program.shift().split(" ");
+  const maxPos: Coordinates = [parseInt(x), parseInt(y)];
+
+  while (program.length > 0) {
+    const location = program.shift();
+    const instrucctions = program.shift();
+    const state = execute(instrucctions, initialState(location), maxPos);
+
+    result.push(print(state));
   }
   return result;
 };
