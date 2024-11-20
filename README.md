@@ -2,7 +2,7 @@
 
 ## About
 
-Developer programming problem submission for **Red Badger**
+Developer programming problem Kata
 
 ## Install
 
